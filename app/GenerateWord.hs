@@ -1,4 +1,4 @@
-module GenerateWord (generateWord) where
+module GenerateWord where
 
 import System.Random (Random (randomR), getStdRandom)
 

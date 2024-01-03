@@ -1,6 +1,8 @@
 module Main where
 
-import GenerateWord (generateWord)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import GenerateWord
 import GuessMode
 import HelpMode
 
@@ -17,7 +19,8 @@ main = do
           putStrLn "Input a word length: "
           wl <- getLine
           wordToGuess <- generateWord (read wl :: Int)
-          playGuessModeEasy 1 wordToGuess
+          dict <- filterWordList (read wl :: Int)
+          playGuessModeEasy Map.empty dict 1 wordToGuess
         "normal" -> do
           putStrLn "Input a word length: "
           wl <- getLine
