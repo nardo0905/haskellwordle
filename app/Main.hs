@@ -17,17 +17,18 @@ main = do
           putStrLn "Input a word length: "
           wl <- getLine
           wordToGuess <- generateWord (read wl :: Int)
-          playGuessModeEasy wordToGuess
+          playGuessModeEasy 1 wordToGuess
         "normal" -> do
           putStrLn "Input a word length: "
           wl <- getLine
           wordToGuess <- generateWord (read wl :: Int)
-          playGuessModeNormal wordToGuess
+          -- putStrLn wordToGuess
+          playGuessModeNormal 1 wordToGuess
         "expert" -> do
           putStrLn "Input a word length: "
           wl <- getLine
           wordToGuess <- generateWord (read wl :: Int)
-          playGuessModeExpert wordToGuess
+          playGuessModeExpert 1 wordToGuess
         "back" -> main
         _ -> return ()
     "help" -> do
