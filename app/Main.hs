@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unused-imports #-}
+
 module Main where
 
 import Data.Map (Map)
@@ -20,6 +22,7 @@ main = do
           wl <- getLine
           wordToGuess <- generateWord (read wl :: Int)
           dict <- filterWordList (read wl :: Int)
+          putStrLn wordToGuess
           playGuessModeEasy Map.empty dict 1 wordToGuess
         "normal" -> do
           putStrLn "Input a word length: "

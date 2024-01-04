@@ -1,5 +1,6 @@
 module GuessMode where
 
+import Data.List (nub)
 import Data.Map (Map)
 import qualified Data.Map as Map
 
@@ -36,23 +37,30 @@ playGuessModeNormal turn word = do
       if inputWord == word
         then do
           mapM_ (\_ -> putStr (show Green)) word
-          putStrLn ""
+          putStrLn []
+          putStrLn "Correct guess!"
         else do
           mapM_ (putStr . show) (compareWords word inputWord)
-          putStrLn ""
+          putStrLn []
           playGuessModeNormal (turn + 1) word
 
-handleLettersMap :: Map (Char, Int) Square -> [((Char, Int), Square)] -> Map (Char, Int) Square
-handleLettersMap _ [] = Map.empty
+handleLettersMap :: Map Char (Int, Square) -> [(Char, (Int, Square))] -> Map Char (Int, Square)
+handleLettersMap currMap [] = currMap
 handleLettersMap currMap sl@(x : xs)
   | null currMap = Map.fromList sl
   | null sl = currMap
   | otherwise = handleLettersMap (uncurry Map.insert x currMap) xs
 
-playGuessModeEasy :: Map (Char, Int) Square -> [String] -> Int -> String -> IO ()
+checkIfGray :: Maybe (Int, Square) -> Bool
+checkIfGray sqPair = case sqPair of
+  Nothing -> False
+  Just (_, col) -> col == Gray
+
+playGuessModeEasy :: Map Char (Int, Square) -> [String] -> Int -> String -> IO ()
 playGuessModeEasy _ _ 6 word = do
   putStrLn ("You ran out of guesses. The word was: " ++ word)
 playGuessModeEasy letters dict turn word = do
+  -- print letters
   putStrLn "Enter your word guess: "
   inputWord <- getLine
   if length inputWord /= length word
@@ -63,33 +71,55 @@ playGuessModeEasy letters dict turn word = do
       if inputWord == word
         then do
           mapM_ (\_ -> putStr (show Green)) word
-          putStrLn ""
+          putStrLn []
+          putStrLn "Correct guess!"
         else do
           let isInDict = inputWord `elem` dict
-          if isInDict then putStr "" else putStrLn "The word you gave as an input is not in the dictionary!"
+          if isInDict then putStr [] else putStrLn "The word you gave as an input is not in the dictionary!"
           let currGuess = compareWords word inputWord
-          let indexedLetters = zip inputWord [0 ..]
-          let squaresLetters = zip indexedLetters currGuess
+          let indexedSquares = zip [0 ..] currGuess
+          let squaresLetters = zip inputWord indexedSquares
 
           if null letters
             then do
-              mapM_ (putStr . show) (compareWords word inputWord)
-              putStrLn ""
-              playGuessModeNormal (turn + 1) word
-            else do
-              let grayLetters = foldr (\x acc -> if Map.lookup x letters == Just Gray then fst x : acc else acc) [] indexedLetters
-              if null grayLetters
-                then do
-                  putStr ""
-                else do
-                  putStr "The following letters are known to be gray: "
-                  mapM_ (\x -> putStr (show x ++ " ")) grayLetters
-              -- TODO: add other checks
               let letters' = handleLettersMap letters squaresLetters
               mapM_ (putStr . show) (compareWords word inputWord)
-              putStrLn ""
-              playGuessModeNormal (turn + 1) word
+              putStrLn []
+              playGuessModeEasy letters' dict (turn + 1) word
+            else do
+              let grayLetters = nub $ foldr (\x acc -> if checkIfGray (Map.lookup x letters) then x : acc else acc) [] inputWord
+              if null grayLetters
+                then do
+                  putStr []
+                else do
+                  putStr "The following letters are known to be gray, but are in your guess: "
+                  mapM_ (\x -> putStr (show x ++ " ")) grayLetters
+                  putStrLn []
 
+              let yellowsNotInWord = nub $ foldr (\(letter, (_, col)) acc -> if col == Yellow && letter `notElem` inputWord then letter : acc else acc) [] (Map.toList letters)
+              if null yellowsNotInWord
+                then do
+                  putStr []
+                else do
+                  putStr "The following letters are known to be yellow, but are not in your guess: "
+                  mapM_ (\x -> putStr (show x ++ " ")) yellowsNotInWord
+                  putStrLn []
+
+              let greenPositionsNotInUse = nub $ foldr (\(letter, (ind, col)) acc -> if col == Green && (inputWord !! ind) /= letter then (ind + 1) : acc else acc) [] (Map.toList letters)
+              if null greenPositionsNotInUse
+                then do
+                  putStr []
+                else do
+                  putStr "You already know that there is a green letter at the following positions:  "
+                  mapM_ (\x -> putStr (show x ++ " ")) greenPositionsNotInUse
+                  putStrLn []
+
+              let letters' = handleLettersMap letters squaresLetters
+              mapM_ (putStr . show) (compareWords word inputWord)
+              putStrLn []
+              playGuessModeEasy letters' dict (turn + 1) word
+
+playGuessModeExpert :: Int -> String -> IO ()
 playGuessModeExpert 6 word = do
   putStrLn ("You ran out of guesses. The word was: " ++ word)
 playGuessModeExpert turn word = undefined
