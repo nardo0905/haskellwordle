@@ -3,6 +3,7 @@ module GuessMode where
 import Data.List (nub)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import System.Random (getStdRandom, randomR)
 
 data Square = Gray | Yellow | Green deriving (Eq, Ord)
 
@@ -83,7 +84,7 @@ playGuessModeEasy letters dict turn word = do
           if null letters
             then do
               let letters' = handleLettersMap letters squaresLetters
-              mapM_ (putStr . show) (compareWords word inputWord)
+              mapM_ (putStr . show) currGuess
               putStrLn []
               playGuessModeEasy letters' dict (turn + 1) word
             else do
@@ -115,11 +116,66 @@ playGuessModeEasy letters dict turn word = do
                   putStrLn []
 
               let letters' = handleLettersMap letters squaresLetters
-              mapM_ (putStr . show) (compareWords word inputWord)
+              mapM_ (putStr . show) currGuess
               putStrLn []
               playGuessModeEasy letters' dict (turn + 1) word
 
-playGuessModeExpert :: Int -> String -> IO ()
-playGuessModeExpert 6 word = do
+-- for each letter of inputWord
+-- check if it is in map
+-- if it is, put the square from history
+-- otherwise, random square
+createLie :: Int -> Map Char (Int, Square) -> String -> IO [Square]
+createLie _ _ [] = return []
+createLie currLetterId lettersHistory (x : xs) = do
+  let currLetterInHistory = Map.lookup x lettersHistory
+  case currLetterInHistory of
+    Nothing -> do
+      lieSquare <- getStdRandom (randomR (1 :: Int, 3))
+      case lieSquare of
+        1 -> fmap (Gray :) (createLie (currLetterId + 1) lettersHistory xs)
+        2 -> fmap (Yellow :) (createLie (currLetterId + 1) lettersHistory xs)
+        3 -> fmap (Green :) (createLie (currLetterId + 1) lettersHistory xs)
+        _ -> createLie (currLetterId + 1) lettersHistory xs
+    Just (letId, square) ->
+      if square == Gray
+        then fmap (Gray :) (createLie (currLetterId + 1) lettersHistory xs)
+        else
+          if square == Yellow
+            then fmap (Yellow :) (createLie (currLetterId + 1) lettersHistory xs)
+            else
+              if square == Green && letId == currLetterId
+                then fmap (Green :) (createLie (currLetterId + 1) lettersHistory xs)
+                else fmap (Yellow :) (createLie (currLetterId + 1) lettersHistory xs)
+
+playGuessModeExpert :: Int -> Map Char (Int, Square) -> Int -> String -> IO ()
+playGuessModeExpert _ _ 6 word = do
   putStrLn ("You ran out of guesses. The word was: " ++ word)
-playGuessModeExpert turn word = undefined
+playGuessModeExpert lieRound letters turn word = do
+  putStrLn "Enter your word guess: "
+  inputWord <- getLine
+  if length inputWord /= length word
+    then do
+      putStrLn "Invalid input length"
+      return ()
+    else
+      if inputWord == word
+        then do
+          mapM_ (\_ -> putStr (show Green)) word
+          putStrLn []
+          putStrLn "Correct guess!"
+        else do
+          if turn == lieRound
+            then do
+              putStrLn "should be a lie"
+              currLieGuess <- createLie 0 letters inputWord
+              mapM_ (putStr . show) currLieGuess
+              putStrLn []
+              playGuessModeExpert lieRound letters (turn + 1) word
+            else do
+              let currGuess = compareWords word inputWord
+              let indexedSquares = zip [0 ..] currGuess
+              let squaresLetters = zip inputWord indexedSquares
+              let letters' = handleLettersMap letters squaresLetters
+              mapM_ (putStr . show) currGuess
+              putStrLn []
+              playGuessModeExpert lieRound letters' (turn + 1) word

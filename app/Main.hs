@@ -7,6 +7,7 @@ import qualified Data.Map as Map
 import GenerateWord
 import GuessMode
 import HelpMode
+import System.Random (getStdRandom, randomR)
 
 main :: IO ()
 main = do
@@ -22,19 +23,22 @@ main = do
           wl <- getLine
           wordToGuess <- generateWord (read wl :: Int)
           dict <- filterWordList (read wl :: Int)
-          putStrLn wordToGuess
-          playGuessModeEasy Map.empty dict 1 wordToGuess
+          -- putStrLn wordToGuess
+          playGuessModeEasy Map.empty dict 0 wordToGuess
         "normal" -> do
           putStrLn "Input a word length: "
           wl <- getLine
           wordToGuess <- generateWord (read wl :: Int)
           -- putStrLn wordToGuess
-          playGuessModeNormal 1 wordToGuess
+          playGuessModeNormal 0 wordToGuess
         "expert" -> do
           putStrLn "Input a word length: "
           wl <- getLine
           wordToGuess <- generateWord (read wl :: Int)
-          playGuessModeExpert 1 wordToGuess
+          -- generating number on which turn to lie
+          lieRound <- getStdRandom (randomR (0, 5))
+          putStrLn (wordToGuess ++ " " ++ show lieRound)
+          playGuessModeExpert lieRound Map.empty 0 wordToGuess
         "back" -> main
         _ -> return ()
     "help" -> do
