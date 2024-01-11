@@ -14,7 +14,6 @@ filterWordList n = do
 
 generateWord :: Int -> IO String
 generateWord n = do
-  let wordList = filterWordList n
-  wordList' <- wordList
-  wordPos <- getStdRandom (randomR (0, length wordList'))
-  return $ wordList' !! wordPos
+  wordList <- filterWordList n
+  wordPos <- getStdRandom (randomR (0, length wordList - 1))
+  return $ wordList !! wordPos

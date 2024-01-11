@@ -37,10 +37,16 @@ main = do
           wordToGuess <- generateWord (read wl :: Int)
           -- generating number on which turn to lie
           lieRound <- getStdRandom (randomR (0, 5))
-          putStrLn (wordToGuess ++ " " ++ show lieRound)
+          -- putStrLn (wordToGuess ++ " " ++ show lieRound)
           playGuessModeExpert lieRound Map.empty 0 wordToGuess
         "back" -> main
         _ -> return ()
     "help" -> do
-      playHelpMode
+      putStrLn "Input a word length: "
+      wl <- getLine
+      wordToGuess <- generateWord (read wl :: Int)
+      dict <- filterWordList (read wl :: Int)
+      putStrLn ("The word the bot has to guess is: " ++ wordToGuess)
+      putStrLn "-------------------------------"
+      playHelpMode dict 0 wordToGuess
     _ -> return ()

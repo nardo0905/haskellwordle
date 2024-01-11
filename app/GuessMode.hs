@@ -12,6 +12,16 @@ instance Show Square where
   show Yellow = "🟨"
   show Green = "🟩"
 
+instance Read Square where
+  readsPrec _ value =
+    tryParse [("Green", Green), ("Yellow", Yellow), ("Gray", Gray)]
+    where
+      tryParse [] = []
+      tryParse ((attempt, result) : xs) =
+        if take (length attempt) value == attempt
+          then [(result, drop (length attempt) value)]
+          else tryParse xs
+
 compareWordsHelper :: String -> String -> String -> [Square]
 compareWordsHelper _ [] [] = []
 compareWordsHelper _ [] _ = []
@@ -166,7 +176,7 @@ playGuessModeExpert lieRound letters turn word = do
         else do
           if turn == lieRound
             then do
-              putStrLn "should be a lie"
+              -- putStrLn "should be a lie"
               currLieGuess <- createLie 0 letters inputWord
               mapM_ (putStr . show) currLieGuess
               putStrLn []
