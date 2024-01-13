@@ -95,47 +95,38 @@ playGuessModeEasy letters dict turn word = do
           let indexedSquares = zip [0 ..] currGuess
           let squaresLetters = zip inputWord indexedSquares
 
-          -- TODO: try without this null check, it could be redundant
-          if null letters
+          let grayLetters = nub $ foldr (\x acc -> if checkIfGray (Map.lookup x letters) then x : acc else acc) [] inputWord
+          if null grayLetters
             then do
-              let letters' = handleLettersMap letters squaresLetters
-              putStrLn $ concatMap (: " ") inputWord
-              mapM_ (putStr . show) currGuess
-              putStrLn []
-              playGuessModeEasy letters' dict (turn + 1) word
+              putStr []
             else do
-              let grayLetters = nub $ foldr (\x acc -> if checkIfGray (Map.lookup x letters) then x : acc else acc) [] inputWord
-              if null grayLetters
-                then do
-                  putStr []
-                else do
-                  putStr "- The following letters are known to be gray, but are in your guess: "
-                  mapM_ (\x -> putStr (show x ++ " ")) grayLetters
-                  putStrLn []
-
-              let yellowsNotInWord = nub $ foldr (\(letter, (_, col)) acc -> if col == Yellow && letter `notElem` inputWord then letter : acc else acc) [] (Map.toList letters)
-              if null yellowsNotInWord
-                then do
-                  putStr []
-                else do
-                  putStr "- The following letters are known to be yellow, but are not in your guess: "
-                  mapM_ (\x -> putStr (show x ++ " ")) yellowsNotInWord
-                  putStrLn []
-
-              let greenPositionsNotInUse = nub $ foldr (\(letter, (ind, col)) acc -> if col == Green && (inputWord !! ind) /= letter then (ind + 1) : acc else acc) [] (Map.toList letters)
-              if null greenPositionsNotInUse
-                then do
-                  putStr []
-                else do
-                  putStr "- You already know that there is a green letter at the following positions:  "
-                  mapM_ (\x -> putStr (show x ++ " ")) greenPositionsNotInUse
-                  putStrLn []
-
-              let letters' = handleLettersMap letters squaresLetters
-              putStrLn $ concatMap (: " ") inputWord
-              mapM_ (putStr . show) currGuess
+              putStr "- The following letters are known to be gray, but are in your guess: "
+              mapM_ (\x -> putStr (show x ++ " ")) grayLetters
               putStrLn []
-              playGuessModeEasy letters' dict (turn + 1) word
+
+          let yellowsNotInWord = nub $ foldr (\(letter, (_, col)) acc -> if col == Yellow && letter `notElem` inputWord then letter : acc else acc) [] (Map.toList letters)
+          if null yellowsNotInWord
+            then do
+              putStr []
+            else do
+              putStr "- The following letters are known to be yellow, but are not in your guess: "
+              mapM_ (\x -> putStr (show x ++ " ")) yellowsNotInWord
+              putStrLn []
+
+          let greenPositionsNotInUse = nub $ foldr (\(letter, (ind, col)) acc -> if col == Green && (inputWord !! ind) /= letter then (ind + 1) : acc else acc) [] (Map.toList letters)
+          if null greenPositionsNotInUse
+            then do
+              putStr []
+            else do
+              putStr "- You already know that there is a green letter at the following positions:  "
+              mapM_ (\x -> putStr (show x ++ " ")) greenPositionsNotInUse
+              putStrLn []
+
+          let letters' = handleLettersMap letters squaresLetters
+          putStrLn $ concatMap (: " ") inputWord
+          mapM_ (putStr . show) currGuess
+          putStrLn []
+          playGuessModeEasy letters' dict (turn + 1) word
 
 createLie :: Int -> Map Char (Int, Square) -> String -> IO [Square]
 createLie _ _ [] = return []

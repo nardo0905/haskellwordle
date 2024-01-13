@@ -46,7 +46,9 @@ main = do
           putStrLn "-------------------------------"
           playGuessModeExpert lieRound Map.empty 0 wordToGuess
         "back" -> main
-        _ -> return ()
+        _ -> do
+          putStrLn "Invalid input! Try again."
+          main
     "help" -> do
       putStrLn "% Input a word length: "
       wl <- getLine
@@ -55,4 +57,7 @@ main = do
       putStrLn ("The word the bot has to guess is: " ++ wordToGuess)
       putStrLn "-------------------------------"
       playHelpMode dict 0 wordToGuess
-    _ -> return ()
+    "quit" -> return ()
+    _ -> do
+      putStrLn "Invalid input! Try again."
+      main
