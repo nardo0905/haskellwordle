@@ -38,13 +38,15 @@ playGuessModeNormal :: Int -> String -> IO ()
 playGuessModeNormal 6 word = do
   putStrLn ("You ran out of guesses. The word was: " ++ word)
 playGuessModeNormal turn word = do
-  putStrLn "Enter your word guess: "
+  putStrLn "\n% Enter your word guess: "
   inputWord <- getLine
+  putStrLn "-------------------------------"
   if length inputWord /= length word
     then do
       putStrLn "Invalid input length"
       return ()
-    else
+    else do
+      putStrLn $ concatMap (: " ") inputWord
       if inputWord == word
         then do
           mapM_ (\_ -> putStr (show Green)) word
@@ -72,28 +74,32 @@ playGuessModeEasy _ _ 6 word = do
   putStrLn ("You ran out of guesses. The word was: " ++ word)
 playGuessModeEasy letters dict turn word = do
   -- print letters
-  putStrLn "Enter your word guess: "
+  putStrLn "\n% Enter your word guess: "
   inputWord <- getLine
+  putStrLn "-------------------------------"
   if length inputWord /= length word
     then do
       putStrLn "Invalid input length"
       return ()
-    else
+    else do
       if inputWord == word
         then do
+          putStrLn $ concatMap (: " ") inputWord
           mapM_ (\_ -> putStr (show Green)) word
           putStrLn []
           putStrLn "Correct guess!"
         else do
           let isInDict = inputWord `elem` dict
-          if isInDict then putStr [] else putStrLn "The word you gave as an input is not in the dictionary!"
+          if isInDict then putStr [] else putStrLn "- The word you gave as an input is not in the dictionary!"
           let currGuess = compareWords word inputWord
           let indexedSquares = zip [0 ..] currGuess
           let squaresLetters = zip inputWord indexedSquares
 
+          -- TODO: try without this null check, it could be redundant
           if null letters
             then do
               let letters' = handleLettersMap letters squaresLetters
+              putStrLn $ concatMap (: " ") inputWord
               mapM_ (putStr . show) currGuess
               putStrLn []
               playGuessModeEasy letters' dict (turn + 1) word
@@ -103,7 +109,7 @@ playGuessModeEasy letters dict turn word = do
                 then do
                   putStr []
                 else do
-                  putStr "The following letters are known to be gray, but are in your guess: "
+                  putStr "- The following letters are known to be gray, but are in your guess: "
                   mapM_ (\x -> putStr (show x ++ " ")) grayLetters
                   putStrLn []
 
@@ -112,7 +118,7 @@ playGuessModeEasy letters dict turn word = do
                 then do
                   putStr []
                 else do
-                  putStr "The following letters are known to be yellow, but are not in your guess: "
+                  putStr "- The following letters are known to be yellow, but are not in your guess: "
                   mapM_ (\x -> putStr (show x ++ " ")) yellowsNotInWord
                   putStrLn []
 
@@ -121,19 +127,16 @@ playGuessModeEasy letters dict turn word = do
                 then do
                   putStr []
                 else do
-                  putStr "You already know that there is a green letter at the following positions:  "
+                  putStr "- You already know that there is a green letter at the following positions:  "
                   mapM_ (\x -> putStr (show x ++ " ")) greenPositionsNotInUse
                   putStrLn []
 
               let letters' = handleLettersMap letters squaresLetters
+              putStrLn $ concatMap (: " ") inputWord
               mapM_ (putStr . show) currGuess
               putStrLn []
               playGuessModeEasy letters' dict (turn + 1) word
 
--- for each letter of inputWord
--- check if it is in map
--- if it is, put the square from history
--- otherwise, random square
 createLie :: Int -> Map Char (Int, Square) -> String -> IO [Square]
 createLie _ _ [] = return []
 createLie currLetterId lettersHistory (x : xs) = do
@@ -161,13 +164,15 @@ playGuessModeExpert :: Int -> Map Char (Int, Square) -> Int -> String -> IO ()
 playGuessModeExpert _ _ 6 word = do
   putStrLn ("You ran out of guesses. The word was: " ++ word)
 playGuessModeExpert lieRound letters turn word = do
-  putStrLn "Enter your word guess: "
+  putStrLn "\n% Enter your word guess: "
   inputWord <- getLine
+  putStrLn "-------------------------------"
   if length inputWord /= length word
     then do
       putStrLn "Invalid input length"
       return ()
-    else
+    else do
+      putStrLn $ concatMap (: " ") inputWord
       if inputWord == word
         then do
           mapM_ (\_ -> putStr (show Green)) word
