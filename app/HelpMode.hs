@@ -38,4 +38,5 @@ playHelpMode dict turn word = do
               putStrLn "No word in the dictionary matches your input!"
               return ()
             else do
+              putStrLn "-------------------------------"
               playHelpMode filteredDict (turn + 1) word
