@@ -80,6 +80,7 @@ playGuessModeEasy letters dict turn word = do
   if length inputWord /= length word
     then do
       putStrLn "Invalid input length"
+      playGuessModeEasy letters dict turn word
       return ()
     else do
       if inputWord == word
